@@ -1,11 +1,9 @@
-'use client'
+"use client"
 import { useEffect, useState } from "react";
 import { ref, get } from "firebase/database";
 import { database } from "../lib/firebase";
 
-export default function Home() {
-
-
+const DisplayData = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,4 +36,6 @@ export default function Home() {
       <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
-}
+};
+
+export default DisplayData;
