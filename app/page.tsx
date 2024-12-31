@@ -4,7 +4,6 @@ import { ref, get } from "firebase/database";
 import { database } from "../lib/firebase";
 
 import { Separator } from "@/components/ui/separator";
-import dynamic from "next/dynamic";
 
 // const GoogleMap = dynamic(() => import("@/components/GoogleMap"), { ssr: false });
 
