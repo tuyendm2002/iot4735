@@ -2,11 +2,33 @@
 import { useEffect, useState } from "react";
 import { ref, get } from "firebase/database";
 import { database } from "../lib/firebase";
-
 import { Separator } from "@/components/ui/separator";
 
+// Định nghĩa kiểu dữ liệu
+type BTData = {
+  A: string;
+  B: string;
+  F: string;
+  S: string;
+  V: string;
+};
+
+type RainfallData = {
+  [key: string]: number;
+};
+
+type FirebaseData = {
+  IOT: {
+    BT1: BTData;
+    BT2: BTData;
+  };
+  Station_1: {
+    Test: RainfallData;
+  };
+};
+
 export default function Home() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<FirebaseData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,13 +37,13 @@ export default function Home() {
       try {
         const snapshot = await get(dataRef);
         if (snapshot.exists()) {
-          setData(snapshot.val());
+          setData(snapshot.val() as FirebaseData);
         } else {
-          setData({});
+          setData(null);
         }
       } catch (error) {
         console.error("Error fetching data: ", error);
-        setData({});
+        setData(null);
       } finally {
         setLoading(false);
       }
@@ -31,42 +53,22 @@ export default function Home() {
   }, []);
 
   if (loading) return <p>Loading...</p>;
-  if (!data || Object.keys(data).length === 0) return <p>No data found</p>;
+  if (!data) return <p>No data found</p>;
 
-  // Lấy dữ liệu với giá trị mặc định
-  const BT1 = data?.IOT?.BT1 || { A: "-", B: "-", F: "-", S: "-", V: "-" };
-  const BT2 = data?.IOT?.BT2 || { A: "-", B: "-", F: "-", S: "-", V: "-" };
-  const rainfall24h = data?.Station_1?.Test
-    ? Object.fromEntries(
-        Object.entries(data.Station_1.Test).filter(
-          ([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24
-        )
-      )
-    : {};
-  const rainfall7d = data?.Station_1?.Test
-    ? Object.fromEntries(
-        Object.entries(data.Station_1.Test).filter(
-          ([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30
-        )
-      )
-    : {};
+  const BT1 = data.IOT.BT1;
+  const BT2 = data.IOT.BT2;
 
-  const renderRainfallChart = (data, title) => {
-    return (
-      <div>
-        <h4 className="text-xl font-bold">{title}</h4>
-        {Object.keys(data).length === 0 ? (
-          <p>Không có dữ liệu</p>
-        ) : (
-          <ul className="list-disc pl-5">
-            {Object.keys(data).map((key) => (
-              <li key={key}>{`${key}: ${data[key]}`}</li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  };
+  const rainfall24h = Object.fromEntries(
+    Object.entries(data.Station_1.Test).filter(
+      ([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24
+    )
+  );
+
+  const rainfall7d = Object.fromEntries(
+    Object.entries(data.Station_1.Test).filter(
+      ([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30
+    )
+  );
 
   return (
     <div className="p-4">
@@ -98,14 +100,26 @@ export default function Home() {
           <p>Bản đồ sẽ được tích hợp tại đây.</p>
         </div>
 
-        {/* Đồ thị lượng mưa 24 giờ */}
         <div className="p-4 border rounded shadow">
-          {renderRainfallChart(rainfall24h, "Lượng mưa trong 24 giờ gần nhất")}
+          <h4 className="text-2xl font-bold">Lượng mưa 24 giờ</h4>
+          <ul>
+            {Object.entries(rainfall24h).map(([key, value]) => (
+              <li key={key}>
+                {key}: {value}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Đồ thị lượng mưa 7 ngày */}
         <div className="p-4 border rounded shadow">
-          {renderRainfallChart(rainfall7d, "Lượng mưa trong 7 ngày gần nhất")}
+          <h4 className="text-2xl font-bold">Lượng mưa 7 ngày</h4>
+          <ul>
+            {Object.entries(rainfall7d).map(([key, value]) => (
+              <li key={key}>
+                {key}: {value}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
