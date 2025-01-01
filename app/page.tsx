@@ -5,7 +5,6 @@ import { database } from "../lib/firebase";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { FaTemperatureHigh, FaTint, FaCloudRain, FaSeedling } from "react-icons/fa";
-import {Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious,} from "@/components/ui/carousel"
 import {
   BarChart,
   Bar,
@@ -13,7 +12,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
