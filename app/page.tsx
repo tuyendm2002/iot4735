@@ -6,6 +6,16 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { FaTemperatureHigh, FaTint, FaCloudRain, FaSeedling } from "react-icons/fa";
 import {Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious,} from "@/components/ui/carousel"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 
 // Định nghĩa kiểu dữ liệu
@@ -18,7 +28,7 @@ type BTData = {
 };
 
 type RainfallData = {
-  [key: string]: number;
+  [key: string]: string;
 };
 
 type FirebaseData = {
@@ -46,6 +56,8 @@ export default function Home() {
   const [data, setData] = useState<FirebaseData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedStation, setSelectedStation] = useState<"Station_1" | "Station_2">("Station_1");
+  const [selectedChart, setSelectedChart] = useState<"24h" | "7d">("24h");
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,17 +90,20 @@ export default function Home() {
     Temperature: "0",
   };
   
-  const rainfall24h = Object.fromEntries(
-    Object.entries(data[selectedStation]?.Test || {}).filter(
-      ([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24
-    )
-  );
-  
-  const rainfall7d = Object.fromEntries(
-    Object.entries(data[selectedStation]?.Test || {}).filter(
-      ([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30
-    )
-  );
+  const rainfallData = data[selectedStation]?.Test || {};
+  const rainfall24h = Object.entries(rainfallData)
+  .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24)
+  .map(([key, value]) => ({
+    time: key, // Đảm bảo là chuỗi
+    rainfall: parseFloat(value) || 0, // Nếu không phải số, đặt mặc định là 0
+  }));
+
+const rainfall7d = Object.entries(rainfallData)
+  .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30)
+  .map(([key, value]) => ({
+    time: key, // Đảm bảo là chuỗi
+    rainfall: parseFloat(value) || 0, // Nếu không phải số, đặt mặc định là 0
+  }));
 
   return (
     <div className="p-4">
@@ -200,45 +215,56 @@ export default function Home() {
         
 
         <Card className="col-span-1 row-span-1 md:col-span-2 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
-          <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
-            Thông tin lượng mưa
-          </div>
+            <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
+              Thông tin lượng mưa
+            </div>
 
-          <CardContent className="items-center justify-center text-center p-2 gap-4">
-            <Carousel>
-              <CarouselContent>
-                <CarouselItem >
-                  
-                  <ul>
-                    {Object.entries(rainfall24h).map(([key, value]) => (
-                      <li key={key}>
-                        {key}: {value}
-                      </li>
-                    ))}
-                  </ul>
-                </CarouselItem>
-                  
-                  <ul>
-                    {Object.entries(rainfall7d).map(([key, value]) => (
-                      <li key={key}>
-                        {key}: {value}
-                      </li>
-                    ))}
-                  </ul>
-                <CarouselItem>
-                  
-                </CarouselItem>
-                
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </CardContent>
+            <CardContent className="items-center justify-center text-center p-2 gap-4 ">
+              {/* Biểu đồ hiển thị */}
+              <ResponsiveContainer width="100%" height={300}>
+                {selectedChart === "24h" ? (
+                  <BarChart data={rainfall24h}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" />
+                    <YAxis label={{ value: "Lượng mưa (mm)", angle: -90, position: "insideLeft" }} />
+                    <Tooltip />
+                    
+                    <Bar dataKey="rainfall" fill="#0369a1" radius={[4, 4, 4, 4]}/>
+                  </BarChart>
+                ) : (
+                  <BarChart data={rainfall7d}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time"  />
+                    <YAxis label={{ value: "Lượng mưa (mm)", angle: -90, position: "insideLeft" }} />
+                    <Tooltip />
+                    
+                    <Bar dataKey="rainfall" fill="#0f766e" radius={[4, 4, 4, 4]} />
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            </CardContent>
 
-          <CardFooter className="justify-center p-4 gap-4">
-            
-          </CardFooter>
-        </Card>
+            {/* Footer chọn hiển thị */}
+            <CardFooter className="justify-center p-4 gap-4">
+              <button
+                className={`px-4 py-2 rounded ${
+                  selectedChart === "24h" ? "bg-blue-500 text-white" : "bg-gray-300"
+                }`}
+                onClick={() => setSelectedChart("24h")}
+              >
+                Lượng mưa 24 giờ
+              </button>
+              <button
+                className={`px-4 py-2 rounded ${
+                  selectedChart === "7d" ? "bg-blue-500 text-white" : "bg-gray-300"
+                }`}
+                onClick={() => setSelectedChart("7d")}
+              >
+                Lượng mưa 7 ngày
+              </button>
+            </CardFooter>
+          </Card>
+
 
       </div>
 
