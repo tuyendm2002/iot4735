@@ -5,6 +5,8 @@ import { database } from "../lib/firebase";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { FaTemperatureHigh, FaTint, FaCloudRain, FaSeedling } from "react-icons/fa";
+import {Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious,} from "@/components/ui/carousel"
+
 
 // Định nghĩa kiểu dữ liệu
 type BTData = {
@@ -202,8 +204,35 @@ export default function Home() {
             Thông tin lượng mưa
           </div>
 
-          <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
-            
+          <CardContent className="items-center justify-center text-center p-2 gap-4">
+            <Carousel>
+              <CarouselContent>
+                <CarouselItem >
+                  
+                  <ul>
+                    {Object.entries(rainfall24h).map(([key, value]) => (
+                      <li key={key}>
+                        {key}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                </CarouselItem>
+                  
+                  <ul>
+                    {Object.entries(rainfall7d).map(([key, value]) => (
+                      <li key={key}>
+                        {key}: {value}
+                      </li>
+                    ))}
+                  </ul>
+                <CarouselItem>
+                  
+                </CarouselItem>
+                
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </CardContent>
 
           <CardFooter className="justify-center p-4 gap-4">
