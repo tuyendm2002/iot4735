@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { ref, get } from "firebase/database";
 import { database } from "../lib/firebase";
 import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { FaTemperatureHigh, FaTint, FaCloudRain, FaSeedling } from "react-icons/fa";
 
 // Định nghĩa kiểu dữ liệu
 type BTData = {
@@ -23,6 +25,17 @@ type FirebaseData = {
     BT2: BTData;
   };
   Station_1: {
+    Humidity: string;
+    HumidityLand: string;
+    RainFall: string;
+    Temperature: string;
+    Test: RainfallData;
+  };
+  Station_2: {
+    Humidity: string;
+    HumidityLand: string;
+    RainFall: string;
+    Temperature: string;
     Test: RainfallData;
   };
 };
@@ -30,6 +43,7 @@ type FirebaseData = {
 export default function Home() {
   const [data, setData] = useState<FirebaseData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedStation, setSelectedStation] = useState<"Station_1" | "Station_2">("Station_1");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,17 +69,21 @@ export default function Home() {
   if (loading) return <p>Loading...</p>;
   if (!data) return <p>No data found</p>;
 
-  const BT1 = data.IOT.BT1;
-  const BT2 = data.IOT.BT2;
-
+  const stationData = data[selectedStation] || {
+    Humidity: "0",
+    HumidityLand: "0",
+    RainFall: "0",
+    Temperature: "0",
+  };
+  
   const rainfall24h = Object.fromEntries(
-    Object.entries(data.Station_1.Test).filter(
+    Object.entries(data[selectedStation]?.Test || {}).filter(
       ([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24
     )
   );
-
+  
   const rainfall7d = Object.fromEntries(
-    Object.entries(data.Station_1.Test).filter(
+    Object.entries(data[selectedStation]?.Test || {}).filter(
       ([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30
     )
   );
@@ -77,52 +95,123 @@ export default function Home() {
         <h2 className="text-xl font-medium">Học phần: Hệ thống IoT - Mã học phần: IT4735</h2>
         <h3 className="font-bold">Vũ Duy Khanh - Hà Mạnh Tuấn - Giang Quốc Hoàn - Đào Mạnh Tuyên</h3>
       </div>
-      
+
       <Separator className="my-4" />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Thông tin trạm IOT */}
-        <div className="p-4 border rounded shadow">
-          <h4 className="text-2xl font-bold">Thông tin trạm IOT</h4>
-          <p>
-            <strong>BT1:</strong> A: {BT1.A}, B: {BT1.B}, F: {BT1.F}, S:{" "}
-            {BT1.S}, V: {BT1.V}
-          </p>
-          <p>
-            <strong>BT2:</strong> A: {BT2.A}, B: {BT2.B}, F: {BT2.F}, S:{" "}
-            {BT2.S}, V: {BT2.V}
-          </p>
-        </div>
+        <Card className="col-span-1 row-span-1 md:col-span-1 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
+          <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
+            Thông tin trạm
+          </div>
 
+          <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
+            <Card className="col-span-1 row-span-1 bg-orange-400">
+              <CardHeader className="font-semibold text-2xl text-white flex items-center p-4 gap-4">
+                Nhiệt độ
+                <FaTemperatureHigh />
+              </CardHeader>
+              <CardContent className="font-semibold text-4xl text-white">
+                {parseFloat(stationData.Temperature).toFixed(2)}°C
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1 row-span-1 bg-cyan-400">
+              <CardHeader className="font-semibold text-2xl text-white flex items-center p-4 gap-4">
+                Độ ẩm
+                <FaTint />
+              </CardHeader>
+              <CardContent className="font-semibold text-4xl text-white">
+                {parseFloat(stationData.Humidity).toFixed(2)}%
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1 row-span-1 bg-blue-400">
+              <CardHeader className="font-semibold text-xl text-white flex items-center p-4 gap-4">
+                Lượng mưa
+                <FaCloudRain />
+              </CardHeader>
+              <CardContent className="font-semibold text-4xl text-white">
+                {parseFloat(stationData.RainFall).toFixed(2)}mm
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1 row-span-1 bg-purple-400">
+              <CardHeader className="font-semibold text-xl text-white flex items-center p-4 gap-4">
+                Độ ẩm đất
+                <FaSeedling />
+              </CardHeader>
+              <CardContent className="font-semibold text-4xl text-white">
+                {parseFloat(stationData.HumidityLand).toFixed(2)}%
+              </CardContent>
+            </Card>
+          </CardContent>
+
+          <CardFooter className="justify-center p-4 gap-4">
+            <button
+              className={`px-4 py-2 rounded-lg ${
+                selectedStation === "Station_1" ? "bg-cyan-500 text-white font-bold" : "bg-gray-300"
+              }`}
+              onClick={() => setSelectedStation("Station_1")}
+            >
+              Station 1
+            </button>
+            <button
+              className={`px-4 py-2 rounded-lg ${
+                selectedStation === "Station_2" ? "bg-cyan-500 text-white font-bold" : "bg-gray-300"
+              }`}
+              onClick={() => setSelectedStation("Station_2")}
+            >
+              Station 2
+            </button>
+          </CardFooter>
+        </Card>
+        
+        <Card className="col-span-1 row-span-1 md:col-span-2 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
+          <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
+            Cảnh báo sạt lở
+          </div>
+
+          <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
+            
+          </CardContent>
+
+          <CardFooter className="justify-center p-4 gap-4">
+            
+          </CardFooter>
+        </Card>
         {/* Bản đồ vị trí trạm */}
-        <div className="p-4 border rounded shadow">
-          <h4 className="text-2xl font-bold">Vị trí trạm trên bản đồ</h4>
-          <p>Bản đồ sẽ được tích hợp tại đây.</p>
-        </div>
+        <Card className="col-span-1 row-span-1 md:col-span-1 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
+          <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
+            Vị trí trạm
+          </div>
 
-        <div className="p-4 border rounded shadow">
-          <h4 className="text-2xl font-bold">Lượng mưa 24 giờ</h4>
-          <ul>
-            {Object.entries(rainfall24h).map(([key, value]) => (
-              <li key={key}>
-                {key}: {value}
-              </li>
-            ))}
-          </ul>
-        </div>
+          <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
+            
+          </CardContent>
 
-        <div className="p-4 border rounded shadow">
-          <h4 className="text-2xl font-bold">Lượng mưa 7 ngày</h4>
-          <ul>
-            {Object.entries(rainfall7d).map(([key, value]) => (
-              <li key={key}>
-                {key}: {value}
-              </li>
-            ))}
-          </ul>
-        </div>
+          <CardFooter className="justify-center p-4 gap-4">
+            
+          </CardFooter>
+        </Card>
+
+        
+
+        <Card className="col-span-1 row-span-1 md:col-span-2 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
+          <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
+            Thông tin lượng mưa
+          </div>
+
+          <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
+            
+          </CardContent>
+
+          <CardFooter className="justify-center p-4 gap-4">
+            
+          </CardFooter>
+        </Card>
+
       </div>
-
 
       <h1>Data from Firebase</h1>
       <pre>{JSON.stringify(data, null, 2)}</pre>
