@@ -15,7 +15,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
 // Định nghĩa kiểu dữ liệu
 type BTData = {
   A: string;
@@ -50,12 +49,33 @@ type FirebaseData = {
   };
 };
 
+const defaultData: FirebaseData = {
+  IOT: {
+    BT1: { A: "0", B: "0", F: "0", S: "0", V: "0" },
+    BT2: { A: "0", B: "0", F: "0", S: "0", V: "0" },
+  },
+  Station_1: {
+    Humidity: "0",
+    HumidityLand: "0",
+    RainFall: "0",
+    Temperature: "0",
+    Test: {},
+  },
+  Station_2: {
+    Humidity: "0",
+    HumidityLand: "0",
+    RainFall: "0",
+    Temperature: "0",
+    Test: {},
+  },
+};
+
 export default function Home() {
-  const [data, setData] = useState<FirebaseData | null>(null);
+  const [data, setData] = useState<FirebaseData>(defaultData);
   const [loading, setLoading] = useState(true);
   const [selectedStation, setSelectedStation] = useState<"Station_1" | "Station_2">("Station_1");
   const [selectedChart, setSelectedChart] = useState<"24h" | "7d">("24h");
-
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>("00:00:00");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,44 +84,60 @@ export default function Home() {
         const snapshot = await get(dataRef);
         if (snapshot.exists()) {
           setData(snapshot.val() as FirebaseData);
+          setLastUpdateTime(new Date().toLocaleTimeString("vi-VN"));
         } else {
-          setData(null);
+          setData(defaultData);
         }
       } catch (error) {
         console.error("Error fetching data: ", error);
-        setData(null);
+        setData(defaultData);
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchData();
+    const interval = setInterval(fetchData, 2000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (!data) return <p>No data found</p>;
+  const stationData = data[selectedStation] || defaultData.Station_1;
 
-  const stationData = data[selectedStation] || {
-    Humidity: "0",
-    HumidityLand: "0",
-    RainFall: "0",
-    Temperature: "0",
-  };
-  
-  const rainfallData = data[selectedStation]?.Test || {};
+  const rainfallData = stationData.Test || {};
   const rainfall24h = Object.entries(rainfallData)
-  .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24)
-  .map(([key, value]) => ({
-    time: key, // Đảm bảo là chuỗi
-    rainfall: parseFloat(value) || 0, // Nếu không phải số, đặt mặc định là 0
-  }));
+    .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) <= 24)
+    .map(([key, value]) => ({
+      time: key,
+      rainfall: parseFloat(value) || 0,
+    }))
+    .sort((a, b) => parseInt(b.time.slice(1)) - parseInt(a.time.slice(1)));
 
-const rainfall7d = Object.entries(rainfallData)
-  .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30)
-  .map(([key, value]) => ({
-    time: key, // Đảm bảo là chuỗi
-    rainfall: parseFloat(value) || 0, // Nếu không phải số, đặt mặc định là 0
-  }));
+  const rainfall7d = Object.entries(rainfallData)
+    .filter(([key]) => key.startsWith("T") && parseInt(key.slice(1)) > 30)
+    .map(([key, value]) => ({
+      time: key,
+      rainfall: parseFloat(value) || 0,
+    }))
+    .sort((a, b) => parseInt(b.time.slice(1)) - parseInt(a.time.slice(1)));
+
+  // Cảnh báo sạt lở dựa trên RainFall
+  const rainFallValue = parseFloat(stationData.RainFall) || 0;
+  let alertLevel = "";
+  let alertMessage = "";
+
+  if (rainFallValue < 25) {
+    alertLevel = "Mức 1: An toàn";
+    alertMessage =
+      "Hãy chú ý an toàn, luôn đảm bảo cập nhật thông tin thời tiết từ trung tâm khí tượng thủy văn ở khu vực của bạn.";
+  } else if (rainFallValue < 100) {
+    alertLevel = "Mức 2: Cảnh báo";
+    alertMessage =
+      "Cần di tản người và tài sản cần thiết, báo cho tất cả mọi người xung quanh về nguy cơ thiệt hại. Luôn theo dõi thông tin thời tiết từ trung tâm khí tượng thủy văn ở khu vực của bạn.";
+  } else {
+    alertLevel = "Mức 3: Nguy hiểm";
+    alertMessage =
+      "Cần di tản người khẩn cấp, hãy bỏ qua tài sản nếu có thể, hô hoán tất cả mọi người xung quanh. Di chuyển đến nơi an toàn nhất có thể.";
+  }
 
   return (
     <div className="p-4">
@@ -180,25 +216,42 @@ const rainfall7d = Object.entries(rainfallData)
           </CardFooter>
         </Card>
         
-        <Card className="col-span-1 row-span-1 md:col-span-2 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
+        <Card className="col-span-1 row-span-1 md:col-span-2 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow h-full">
           <div className="flex items-center justify-center text-cyan-900 text-2xl font-bold rounded-2xl p-2">
             Cảnh báo sạt lở
           </div>
 
           <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
-            <Card className="col-span-1 row-span-3 bg-orange-600 h-full p-4">
+            <Card
+              className={`col-span-1 row-span-1 h-full p-4 ${
+                rainFallValue < 25
+                  ? "bg-green-600"
+                  : rainFallValue < 100
+                  ? "bg-orange-600"
+                  : "bg-red-600"
+              }`}
+            >
               <CardHeader className="font-semibold text-3xl text-white items-center p-4 gap-4">
                 Dự báo sạt lở
               </CardHeader>
               <Separator className="my-1" />
               <CardContent className="font-bold text-5xl text-white gap-4 p-4">
-                Mức 2
+                {alertLevel}
+                
               </CardContent>
               
               <CardFooter className="font-normal text-xl text-white">
-                Khả năng nguy hiểm khá cao, chủ động theo dõi các bản tin thời tiết, sơ tán người và tài sản cẩn thiết
-              </CardFooter>
+              <div>
+                {alertMessage}
+              </div>
               
+              </CardFooter>
+
+              <div className="text-sm italic">
+                {loading
+                  ? "Chưa kết nối được server"
+                  : `Cập nhật: ${lastUpdateTime}`}
+              </div>
             </Card>
             
             
