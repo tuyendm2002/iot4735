@@ -245,9 +245,10 @@ const rainfall7d = Object.entries(rainfallData)
 
           <CardContent className="items-center justify-center text-center p-2 gap-4">
           <iframe
+              className="rounded-2xl"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.684617639564!2d105.8451778!3d21.0052757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ad3592853133%3A0x20992b190671769b!2zTmjDoCBDNyAsIMSQ4bqhaSBI4buNYyBCw6FjaCBLaG9hIEjDoCBO4buZaQ!5e0!3m2!1svi!2s!4v1735801651893!5m2!1svi!2s"
               width="100%"
-              height="200"
+              height="300"
               style={{ border: 0 }}
               
               loading="lazy"
