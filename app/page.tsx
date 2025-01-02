@@ -188,8 +188,7 @@ const rainfall7d = Object.entries(rainfallData)
           <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
             <Card className="col-span-1 row-span-3 bg-orange-600 h-full p-4">
               <CardHeader className="font-semibold text-3xl text-white items-center p-4 gap-4">
-                Mức cảnh báo hiện tại
-                
+                Dự báo sạt lở
               </CardHeader>
               <Separator className="my-1" />
               <CardContent className="font-bold text-5xl text-white gap-4 p-4">
@@ -202,31 +201,23 @@ const rainfall7d = Object.entries(rainfallData)
               
             </Card>
             
-            <Card className="col-span-1 row-span-2 bg-red-600 h-full">
-              <CardHeader className="font-semibold text-2xl text-white flex items-center p-4 gap-4">
-                Mức cảnh báo dự báo
-                
-              </CardHeader>
-              <CardContent className="font-semibold text-3xl text-white">
-                Mức 3
-              </CardContent>
-            </Card>
+            
 
             <Card className="col-span-1 row-span-1 bg-cyan-50 h-full">
               <CardHeader className="font-semibold text-2xl text-cyan-900 flex items-center p-4 gap-4">
                 Thông tin các mức cảnh báo
                 
               </CardHeader>
-              <CardContent className="font-semibold text-2xl text-cyan-800">
+              <CardContent className="font-semibold text-2xl ">
                 
-                <div>
-                  Mức 1: 
+                <div className="text-green-600">
+                  Mức 1: An toàn
                 </div>
-                <div>
-                  Mức 2:
+                <div className="text-yellow-600">
+                  Mức 2: Cảnh báo
                 </div>
-                <div>
-                  Mức 3:
+                <div className="text-red-600">
+                  Mức 3: Nguy hiểm
                 </div>
               </CardContent>
             </Card>
