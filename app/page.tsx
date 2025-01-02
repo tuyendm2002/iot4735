@@ -70,6 +70,39 @@ const defaultData: FirebaseData = {
   },
 };
 
+const sendTelegramAlert = async (message: string) => {
+  const telegramBotToken = process.env.NEXT_PUBLIC_TELEBOT_ID;
+  const telegramChatId = process.env.NEXT_PUBLIC_TELECHAT_ID;
+
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: message,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      // Ghi nhận lỗi nhưng không ảnh hưởng giao diện
+      // Bạn có thể lưu lỗi vào một biến trạng thái hoặc ghi vào log file
+      return false; // Thông báo gửi thất bại
+    }
+
+    return true; // Thông báo gửi thành công
+  } catch {
+    // Trường hợp lỗi xảy ra
+    return false;
+  }
+};
+
+
 export default function Home() {
   const [data, setData] = useState<FirebaseData>(defaultData);
   const [loading, setLoading] = useState(true);
@@ -101,6 +134,9 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
+
+  
+
   const stationData = data[selectedStation] || defaultData.Station_1;
 
   const rainfallData = stationData.Test || {};
@@ -125,6 +161,36 @@ export default function Home() {
   let alertLevel = "";
   let alertMessage = "";
 
+  useEffect(() => {
+    let alertInterval: NodeJS.Timeout;
+  
+    if (rainFallValue > 100) {
+      const alertMessage = `🚨 Cảnh báo mức 3: Nguy hiểm! Lượng mưa hiện tại: ${rainFallValue.toFixed(
+        2
+      )} mm. Hãy di tản ngay lập tức!`;
+  
+      const sendAlert = async () => {
+        const success = await sendTelegramAlert(alertMessage);
+        if (!success) {
+          // Xử lý khi gửi thất bại (nếu cần)
+          // Ví dụ: Hiển thị thông báo lỗi trong UI hoặc ghi log
+        }
+      };
+  
+      // Gửi tin nhắn lần đầu
+      sendAlert();
+  
+      // Lặp lại mỗi 30 giây
+      alertInterval = setInterval(sendAlert, 30000);
+    }
+  
+    // Dọn dẹp interval khi mức cảnh báo giảm hoặc component unmount
+    return () => {
+      if (alertInterval) clearInterval(alertInterval);
+    };
+  }, [rainFallValue]);
+  
+
   if (rainFallValue < 25) {
     alertLevel = "Mức 1: An toàn";
     alertMessage =
@@ -146,6 +212,8 @@ export default function Home() {
         <h2 className="text-xl font-medium">Học phần: Hệ thống IoT - Mã học phần: IT4735</h2>
         <h3 className="font-bold">Vũ Duy Khanh - Hà Mạnh Tuấn - Giang Quốc Hoàn - Đào Mạnh Tuyên</h3>
       </div>
+
+      <Separator className="my-4" />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Thông tin trạm IOT */}
@@ -360,10 +428,7 @@ export default function Home() {
 
       
 
-      <Separator className="my-4" />
-
-      <h1>Data from Firebase</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      
     </div>
   );
 }
