@@ -111,8 +111,6 @@ const rainfall7d = Object.entries(rainfallData)
         <h3 className="font-bold">Vũ Duy Khanh - Hà Mạnh Tuấn - Giang Quốc Hoàn - Đào Mạnh Tuyên</h3>
       </div>
 
-      <Separator className="my-4" />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Thông tin trạm IOT */}
         <Card className="col-span-1 row-span-1 md:col-span-1 md:row-span-1 p-4 bg-amber-50 border rounded-2xl shadow">
@@ -188,7 +186,51 @@ const rainfall7d = Object.entries(rainfallData)
           </div>
 
           <CardContent className="items-center justify-center text-center grid grid-cols-2 p-2 gap-4">
+            <Card className="col-span-1 row-span-3 bg-orange-600 h-full p-4">
+              <CardHeader className="font-semibold text-3xl text-white items-center p-4 gap-4">
+                Mức cảnh báo hiện tại
+                
+              </CardHeader>
+              <Separator className="my-1" />
+              <CardContent className="font-bold text-5xl text-white gap-4 p-4">
+                Mức 2
+              </CardContent>
+              
+              <CardFooter className="font-normal text-xl text-white">
+                Khả năng nguy hiểm khá cao, chủ động theo dõi các bản tin thời tiết, sơ tán người và tài sản cẩn thiết
+              </CardFooter>
+              
+            </Card>
             
+            <Card className="col-span-1 row-span-2 bg-red-600 h-full">
+              <CardHeader className="font-semibold text-2xl text-white flex items-center p-4 gap-4">
+                Mức cảnh báo dự báo
+                
+              </CardHeader>
+              <CardContent className="font-semibold text-3xl text-white">
+                Mức 3
+              </CardContent>
+            </Card>
+
+            <Card className="col-span-1 row-span-1 bg-cyan-50 h-full">
+              <CardHeader className="font-semibold text-2xl text-cyan-900 flex items-center p-4 gap-4">
+                Thông tin các mức cảnh báo
+                
+              </CardHeader>
+              <CardContent className="font-semibold text-2xl text-cyan-800">
+                
+                <div>
+                  Mức 1: 
+                </div>
+                <div>
+                  Mức 2:
+                </div>
+                <div>
+                  Mức 3:
+                </div>
+              </CardContent>
+            </Card>
+
           </CardContent>
 
           <CardFooter className="justify-center p-4 gap-4">
@@ -265,6 +307,12 @@ const rainfall7d = Object.entries(rainfallData)
 
 
       </div>
+
+      <Separator className="my-4" />
+
+      
+
+      <Separator className="my-4" />
 
       <h1>Data from Firebase</h1>
       <pre>{JSON.stringify(data, null, 2)}</pre>
